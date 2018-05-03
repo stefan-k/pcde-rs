@@ -54,29 +54,42 @@ impl Node {
         }
     }
 
-    pub fn add_bin(&mut self, bin: &NodeRef, extent: Vec<Extent>) -> &mut Self {
-        match *bin.borrow() {
+    pub fn push_node(&mut self, node: &NodeRef, extent: Vec<Extent>) -> &mut Self {
+        match *node.borrow() {
             Node::Bin { .. } => {
                 match *self {
                     Node::Child {
                         bins: ref mut b,
                         extent: ref mut ext,
                     } => {
-                        let bin = bin.clone();
+                        let bin = node.clone();
                         assert_eq!(bin.borrow().len(), extent.len());
                         if b.len() == 0 {
                             *ext = extent
                                 .iter()
-                                .zip((*bin.borrow()).pos().iter())
+                                .zip(bin.borrow().pos().iter())
                                 .map(|((a, b), c)| (a + c, b + c))
+                                .collect();
+                        } else {
+                            *ext = extent
+                                .iter()
+                                .zip(bin.borrow().pos().iter())
+                                .map(|((a, b), c)| (a + c, b + c))
+                                .zip(ext.iter())
+                                .map(|((a1, b1), &(a2, b2))| {
+                                    (
+                                        if a1 < a2 { a1 } else { a2 },
+                                        if b1 > b2 { b1 } else { b2 },
+                                    )
+                                })
                                 .collect();
                         }
                         b.push(bin);
                     }
-                    _ => panic!("Bins can only be added to Child"),
+                    _ => panic!("You are trying to push a Child into a Bin. Unfortunately, this is not allowed."),
                 };
             }
-            _ => unimplemented!(),
+            Node::Child { .. } => unimplemented!(),
         }
         self
     }
