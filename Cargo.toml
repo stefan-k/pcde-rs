@@ -1,6 +1,26 @@
 [package]
 name = "pcde"
-version = "0.1.0"
+version = "0.0.0"
 authors = ["Stefan Kroboth <stefan.kroboth@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Point Cloud Density Estimation"
+documentation = "https://stefan-k.github.io/pcde-rs/pcde/"
+homepage = "https://github.com/stefan-k/pcde-rs"
+repository = "https://github.com/stefan-k/pcde-rs"
+readme = "README.md"
+keywords = ["point cloud", "density estimation"]
+categories = ["science"]
+#license-file = "LICENSE-APACHE"
+exclude = [ 
+	".travis.yml",
+	"push_docs",
+]
 
 [dependencies]
+clippy = {version = "*", optional = true}
+
+[features]
+default = []
+
+[badges]
+travis-ci = { repository = "stefan-k/pcde-rs", branch = "master" }
