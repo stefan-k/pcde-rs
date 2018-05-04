@@ -68,13 +68,13 @@ impl Node {
                             *ext = extent
                                 .iter()
                                 .zip(bin.borrow().pos().iter())
-                                .map(|((a, b), c)| (a + c, b + c))
+                                .map(|(&(a, b), c)| (a + c, b + c))
                                 .collect();
                         } else {
                             *ext = extent
                                 .iter()
                                 .zip(bin.borrow().pos().iter())
-                                .map(|((a, b), c)| (a + c, b + c))
+                                .map(|(&(a, b), c)| (a + c, b + c))
                                 .zip(ext.iter())
                                 .map(|((a1, b1), &(a2, b2))| {
                                     (
@@ -86,10 +86,13 @@ impl Node {
                         }
                         b.push(bin);
                     }
-                    _ => panic!("You are trying to push a Child into a Bin. Unfortunately, this is not allowed."),
+                    Node::Bin { .. } => panic!("Cannot push Bin into Bin."),
                 };
             }
-            Node::Child { .. } => unimplemented!(),
+            Node::Child { .. } => match *self {
+                Node::Child { .. } => unimplemented!(),
+                Node::Bin { .. } => panic!("You are trying to push a Child into a Bin. Unfortunately, this is not allowed."),
+            },
         }
         self
     }
