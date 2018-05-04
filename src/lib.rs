@@ -16,23 +16,30 @@ type Extent = (f64, f64);
 pub enum Node {
     Bin {
         pos: Vec<f64>,
+        extent: Vec<Extent>,
         val: f64,
     },
     Child {
-        bins: Vec<NodeRef>,
+        children: Vec<NodeRef>,
         extent: Vec<Extent>,
     },
 }
 
 impl Node {
-    pub fn new_bin(pos: Vec<f64>) -> Self {
-        Node::Bin { pos, val: 0.0 }
+    pub fn new_bin(pos: Vec<f64>, extent: Vec<Extent>) -> Self {
+        assert_eq!(pos.len(), extent.len());
+        Node::Bin {
+            pos,
+            extent,
+            val: 0.0,
+        }
     }
 
     pub fn add_to_bin(&mut self, val: f64) -> &mut Self {
         match *self {
             Node::Bin {
                 pos: _,
+                extent: _,
                 val: ref mut v,
             } => *v += val,
             _ => panic!("Can only add values to bin."),
@@ -47,23 +54,34 @@ impl Node {
         }
     }
 
+    pub fn extent(&self) -> Vec<Extent> {
+        match *self {
+            Node::Bin {
+                pos: _,
+                extent: ref e,
+                ..
+            } => e.clone(),
+            _ => panic!("only applicable to bins"),
+        }
+    }
+
     pub fn new_child() -> Self {
         Node::Child {
-            bins: vec![],
+            children: vec![],
             extent: vec![],
         }
     }
 
-    pub fn push_node(&mut self, node: &NodeRef, extent: Vec<Extent>) -> &mut Self {
+    pub fn push_node(&mut self, node: &NodeRef) -> &mut Self {
         match *node.borrow() {
             Node::Bin { .. } => {
                 match *self {
                     Node::Child {
-                        bins: ref mut b,
+                        children: ref mut b,
                         extent: ref mut ext,
                     } => {
                         let bin = node.clone();
-                        assert_eq!(bin.borrow().len(), extent.len());
+                        let extent = bin.borrow().extent();
                         if b.len() == 0 {
                             *ext = extent
                                 .iter()
@@ -100,7 +118,9 @@ impl Node {
     pub fn len(&self) -> usize {
         match *self {
             Node::Bin { pos: ref p, .. } => p.len(),
-            Node::Child { bins: ref b, .. } => b.len(),
+            Node::Child {
+                children: ref b, ..
+            } => b.len(),
         }
     }
 
@@ -109,12 +129,10 @@ impl Node {
     }
 }
 
-// struct Node {
-
-// #[cfg(test)]
-// mod tests {
-//     #[test]
-//     fn it_works() {
-//         assert_eq!(2 + 2, 4);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+}
