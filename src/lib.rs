@@ -13,114 +13,139 @@ use std::rc::Rc;
 type NodeRef = Rc<RefCell<Node>>;
 type Extent = (f64, f64);
 
-pub enum Node {
-    Bin {
-        pos: Vec<f64>,
-        extent: Vec<Extent>,
-        val: f64,
-    },
-    Child {
-        children: Vec<NodeRef>,
-        extent: Vec<Extent>,
-    },
+pub struct RootData {
+    children: Vec<NodeRef>,
 }
 
-impl Node {
-    pub fn new_bin(pos: Vec<f64>, extent: Vec<Extent>) -> Self {
+pub struct ChildData {
+    children: Vec<NodeRef>,
+    extent: Vec<Extent>,
+}
+
+pub struct BinData {
+    pos: Vec<f64>,
+    extent: Vec<Extent>,
+    val: f64,
+}
+
+pub enum Node {
+    Root(RootData),
+    Child(ChildData),
+    Bin(BinData),
+}
+
+impl RootData {
+    pub fn new() -> Self {
+        RootData { children: vec![] }
+    }
+
+    pub fn push(&mut self, node: &NodeRef) -> &mut Self {
+        match *node.borrow() {
+            Node::Child(_) => self.children.push(node.clone()),
+            _ => panic!("Can only push Node::Child to Node::Root."),
+        };
+        self
+    }
+}
+
+impl ChildData {
+    pub fn new() -> Self {
+        ChildData {
+            children: vec![],
+            extent: vec![],
+        }
+    }
+
+    pub fn push(&mut self, node: &NodeRef) -> &mut Self {
+        match *node.borrow() {
+            Node::Bin(_) | Node::Child(_) => {
+                let node = node.clone();
+                self.extent = node.borrow()
+                    .extent()
+                    .iter()
+                    .zip(self.extent.iter())
+                    .map(|(&(a, b), &(c, d))| {
+                        (if a < c { a } else { c }, if b > d { b } else { d })
+                    })
+                    .collect();
+                self.children.push(node);
+            }
+            _ => panic!("Can only push Node::Bin or Node::Child to Node::Child"),
+        };
+        self
+    }
+
+    pub fn extent(&self) -> Vec<Extent> {
+        self.extent.clone()
+    }
+}
+
+impl BinData {
+    pub fn new(pos: Vec<f64>, extent: Vec<Extent>) -> Self {
         assert_eq!(pos.len(), extent.len());
-        Node::Bin {
+        let extent = extent
+            .iter()
+            .zip(pos.iter())
+            .map(|(&(a, b), c)| (a + c, b + c))
+            .collect();
+        BinData {
             pos,
             extent,
             val: 0.0,
         }
     }
 
+    pub fn add(&mut self, val: f64) -> &mut Self {
+        self.val += val;
+        self
+    }
+
+    pub fn extent(&self) -> Vec<Extent> {
+        self.extent.clone()
+    }
+}
+
+impl Node {
+    pub fn new_root() -> Node {
+        Node::Root(RootData::new())
+    }
+
+    pub fn new_child() -> NodeRef {
+        Rc::new(RefCell::new(Node::Child(ChildData::new())))
+    }
+
+    pub fn new_bin(pos: Vec<f64>, extent: Vec<Extent>) -> NodeRef {
+        Rc::new(RefCell::new(Node::Bin(BinData::new(pos, extent))))
+    }
+
     pub fn add_to_bin(&mut self, val: f64) -> &mut Self {
         match *self {
-            Node::Bin {
-                pos: _,
-                extent: _,
-                val: ref mut v,
-            } => *v += val,
+            Node::Bin(ref mut b) => b.add(val),
             _ => panic!("Can only add values to bin."),
         };
         self
     }
 
-    pub fn pos(&self) -> Vec<f64> {
+    pub fn push_node(&mut self, node: &NodeRef) -> &mut Self {
         match *self {
-            Node::Bin { pos: ref p, .. } => p.clone(),
-            _ => panic!("only applicable to bins"),
-        }
+            Node::Root(ref mut x) => {
+                x.push(node);
+                ()
+            }
+            Node::Child(ref mut x) => {
+                x.push(node);
+                ()
+            }
+            _ => panic!("Cannot push to Node::Bin."),
+        };
+        self
     }
 
     pub fn extent(&self) -> Vec<Extent> {
         match *self {
-            Node::Bin {
-                pos: _,
-                extent: ref e,
-                ..
-            } => e.clone(),
-            _ => panic!("only applicable to bins"),
-        }
-    }
-
-    pub fn new_child() -> Self {
-        Node::Child {
-            children: vec![],
-            extent: vec![],
-        }
-    }
-
-    pub fn push_node(&mut self, node: &NodeRef) -> &mut Self {
-        match *node.borrow() {
-            Node::Bin { .. } => {
-                match *self {
-                    Node::Child {
-                        children: ref mut b,
-                        extent: ref mut ext,
-                    } => {
-                        let bin = node.clone();
-                        let extent = bin.borrow().extent();
-                        if b.len() == 0 {
-                            *ext = extent
-                                .iter()
-                                .zip(bin.borrow().pos().iter())
-                                .map(|(&(a, b), c)| (a + c, b + c))
-                                .collect();
-                        } else {
-                            *ext = extent
-                                .iter()
-                                .zip(bin.borrow().pos().iter())
-                                .map(|(&(a, b), c)| (a + c, b + c))
-                                .zip(ext.iter())
-                                .map(|((a1, b1), &(a2, b2))| {
-                                    (
-                                        if a1 < a2 { a1 } else { a2 },
-                                        if b1 > b2 { b1 } else { b2 },
-                                    )
-                                })
-                                .collect();
-                        }
-                        b.push(bin);
-                    }
-                    Node::Bin { .. } => panic!("Cannot push Bin into Bin."),
-                };
-            }
-            Node::Child { .. } => match *self {
-                Node::Child { .. } => unimplemented!(),
-                Node::Bin { .. } => panic!("You are trying to push a Child into a Bin. Unfortunately, this is not allowed."),
-            },
-        }
-        self
-    }
-
-    pub fn len(&self) -> usize {
-        match *self {
-            Node::Bin { pos: ref p, .. } => p.len(),
-            Node::Child {
-                children: ref b, ..
-            } => b.len(),
+            Node::Bin(ref x) => x.extent(),
+            Node::Child(ref x) => x.extent(),
+            _ => panic!("No extent for parent node"),
         }
     }
 
