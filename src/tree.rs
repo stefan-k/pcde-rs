@@ -60,14 +60,18 @@ impl ChildData {
         match *node.borrow() {
             Node::Bin(_) | Node::Child(_) => {
                 let node = node.clone();
-                self.extent = node.borrow()
-                    .extent()
-                    .iter()
-                    .zip(self.extent.iter())
-                    .map(|(&(a, b), &(c, d))| {
-                        (if a < c { a } else { c }, if b > d { b } else { d })
-                    })
-                    .collect();
+                if self.extent.len() == 0 {
+                    self.extent = node.borrow().extent();
+                } else {
+                    self.extent = node.borrow()
+                        .extent()
+                        .iter()
+                        .zip(self.extent.iter())
+                        .map(|(&(a, b), &(c, d))| {
+                            (if a < c { a } else { c }, if b > d { b } else { d })
+                        })
+                        .collect();
+                }
                 self.children.push(node);
             }
             _ => panic!("Can only push Node::Bin or Node::Child to Node::Child"),
@@ -102,6 +106,10 @@ impl BinData {
 
     pub fn extent(&self) -> Vec<Extent> {
         self.extent.clone()
+    }
+
+    pub fn pos(&self) -> Vec<f64> {
+        self.pos.clone()
     }
 }
 
@@ -154,10 +162,43 @@ impl Node {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     #[test]
-//     fn it_works() {
-//         assert_eq!(2 + 2, 4);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use super::{BinData, Node};
+
+    #[test]
+    fn create_bin() {
+        let bin = BinData::new(vec![1.0, 2.0], vec![(-1.0, 1.0), (3.0, 4.0)]);
+        assert_eq!(bin.extent(), vec![(0.0, 2.0), (5.0, 6.0)]);
+        assert_eq!(bin.pos(), vec![1.0, 2.0]);
+    }
+
+    #[test]
+    fn create_child_push_bin() {
+        let child = Node::new_child();
+        let bin = Node::new_bin(vec![1.0, 2.0], vec![(-1.0, 1.0), (3.0, 4.0)]);
+        (*child.borrow_mut()).push_node(&bin);
+        assert_eq!(child.borrow().extent(), vec![(0.0, 2.0), (5.0, 6.0)]);
+    }
+
+    #[test]
+    fn create_child_push_bin_and_bin() {
+        let child = Node::new_child();
+        let bin1 = Node::new_bin(vec![1.0, 2.0], vec![(-1.0, 1.0), (3.0, 4.0)]);
+        let bin2 = Node::new_bin(vec![1.0, 2.0], vec![(-8.0, 0.5), (2.0, 7.0)]);
+        (*child.borrow_mut()).push_node(&bin1);
+        (*child.borrow_mut()).push_node(&bin2);
+        assert_eq!(child.borrow().extent(), vec![(-7.0, 2.0), (5.0, 9.0)]);
+    }
+
+    #[test]
+    fn create_child_push_child_with_bin() {
+        let child1 = Node::new_child();
+        let child2 = Node::new_child();
+        let bin = Node::new_bin(vec![1.0, 2.0], vec![(-1.0, 1.0), (3.0, 4.0)]);
+        (*child1.borrow_mut()).push_node(&bin);
+        (*child2.borrow_mut()).push_node(&child1);
+        assert_eq!(child2.borrow().extent(), vec![(0.0, 2.0), (5.0, 6.0)]);
+        // assert_eq!(child.pos(), vec![1.0, 2.0]);
+    }
+}
