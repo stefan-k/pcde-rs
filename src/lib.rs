@@ -7,6 +7,7 @@
 
 //! Point Cloud Density Estimation
 
+mod pyramid;
 mod tree;
 
 use tree::Node;
