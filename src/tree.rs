@@ -9,8 +9,10 @@
 
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::rc::Weak;
 
 type NodeRef = Rc<RefCell<Node>>;
+type WeakNodeRef = Weak<RefCell<Node>>;
 type Extent = (f64, f64);
 
 pub struct RootData {
@@ -20,12 +22,14 @@ pub struct RootData {
 pub struct ChildData {
     children: Vec<NodeRef>,
     extent: Vec<Extent>,
+    parent: Option<WeakNodeRef>,
 }
 
 pub struct BinData {
     pos: Vec<f64>,
     extent: Vec<Extent>,
     val: f64,
+    parent: Option<WeakNodeRef>,
 }
 
 pub enum Node {
@@ -53,6 +57,7 @@ impl ChildData {
         ChildData {
             children: vec![],
             extent: vec![],
+            parent: None,
         }
     }
 
@@ -82,6 +87,11 @@ impl ChildData {
     pub fn extent(&self) -> Vec<Extent> {
         self.extent.clone()
     }
+
+    pub fn set_parent(&mut self, parent: &NodeRef) -> &mut Self {
+        self.parent = Some(Rc::downgrade(parent));
+        self
+    }
 }
 
 impl BinData {
@@ -96,6 +106,7 @@ impl BinData {
             pos,
             extent,
             val: 0.0,
+            parent: None,
         }
     }
 
@@ -110,6 +121,11 @@ impl BinData {
 
     pub fn pos(&self) -> Vec<f64> {
         self.pos.clone()
+    }
+
+    pub fn set_parent(&mut self, parent: &NodeRef) -> &mut Self {
+        self.parent = Some(Rc::downgrade(parent));
+        self
     }
 }
 
@@ -142,6 +158,21 @@ impl Node {
             }
             Node::Child(ref mut x) => {
                 x.push(node);
+                ()
+            }
+            _ => panic!("Cannot set parent of Node::Root."),
+        };
+        self
+    }
+
+    pub fn set_parent(&mut self, parent: &NodeRef) -> &mut Self {
+        match *self {
+            Node::Bin(ref mut x) => {
+                x.set_parent(parent);
+                ()
+            }
+            Node::Child(ref mut x) => {
+                x.set_parent(parent);
                 ()
             }
             _ => panic!("Cannot push to Node::Bin."),
