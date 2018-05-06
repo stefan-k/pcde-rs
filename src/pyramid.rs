@@ -36,18 +36,22 @@ impl Node {
     pub fn as_ref(self) -> NodeRef {
         Rc::new(RefCell::new(self))
     }
-}
 
-pub struct Pyramid {
-    root: Node,
-    extents: Vec<Extent>,
+    pub fn inside(&self, pos: Vec<f64>, extent: Extent) -> bool {
+        pos.iter()
+            .zip(self.pos.iter())
+            .zip(extent.iter())
+            .map(|((&xn, xk), &(ln, lp))| (xn > xk + ln) && (xn < xk + lp))
+            .filter(|x| !x)
+            .count() == 0
+    }
 }
 
 fn bin_positions(
     lim_x: (f64, f64),
     lim_y: (f64, f64),
     n_bins: (usize, usize),
-    extent: (usize, usize),
+    extent: (u64, u64),
 ) -> Vec<(f64, f64)> {
     let border_x = (
         lim_x.0 + (extent.0 as f64) / 2.0,
@@ -71,17 +75,66 @@ fn bin_positions(
     out
 }
 
+pub struct Pyramid {
+    root: NodeRef,
+    extents: Vec<Extent>,
+}
+
 impl Pyramid {
     pub fn new(
         (min_x, max_x): (f64, f64),
         (min_y, max_y): (f64, f64),
         (n_bins_x, n_bins_y): (u64, u64),
-        (extent_x, extent_y): (u64, u64),
     ) -> Self {
-        // todo: n_bins_x and n_bins_y must be a power of 2
         // first, create individual layers with their corresponding bin positions and extents
         // second, connect the layers properly
-        let root = Node::new(vec![(min_x + max_x) / 2.0, (min_y + max_y) / 2.0]);
-        unimplemented!()
+        assert!(n_bins_x.is_power_of_two());
+        assert!(n_bins_y.is_power_of_two());
+        // for now, assure that the number of bins are the same in all directions
+        assert!(n_bins_x == n_bins_y);
+        // let num_layers = [(n_bins_x as f64).log2(), (n_bins_y as f64).log2()].max();
+        let num_layers = (n_bins_x as f64).log2() as u64;
+
+        // create root node
+        let root = Node::new(vec![(min_x + max_x) / 2.0, (min_y + max_y) / 2.0]).as_ref();
+        let mut extents = vec![];
+        extents.push(vec![(min_x, max_x), (min_y, max_y)]);
+        let mut pyr = Pyramid { root, extents };
+
+        // push second node
+        let bin_pos = bin_positions(
+            (min_x, max_x),
+            (min_y, max_y),
+            (2, 2),
+            (num_layers, num_layers),
+        );
+
+        for b in bin_pos.iter() {
+            let bin = Node::new(vec![b.0, b.1]);
+            pyr.push_node(&bin.as_ref(), 2);
+        }
+
+        pyr
+    }
+
+    pub fn push_node(&mut self, node: &NodeRef, layer: u64) -> &mut Self {
+        let mut curr_nodes = vec![self.root.clone()];
+        let mut next_nodes = vec![];
+        for lay in 0..layer {
+            for cn in curr_nodes.iter() {
+                cn.borrow()
+                    .children
+                    .iter()
+                    .filter(|c| {
+                        c.borrow().inside(
+                            node.borrow().pos.clone(),
+                            vec![(-(lay as f64 + 1.0), lay as f64 + 1.0)],
+                        )
+                    })
+                    .map(|c| next_nodes.push(c.clone()))
+                    .count();
+            }
+        }
+        self
     }
 }
