@@ -55,18 +55,18 @@ fn bin_positions(
     lim_y: (f64, f64),
     n_bins: (usize, usize),
 ) -> (Vec<(f64, f64)>, Extent) {
-    let step_x = (lim_x.0 + lim_x.1) / (n_bins.0 as f64);
-    let step_y = (lim_y.0 + lim_y.1) / (n_bins.1 as f64);
+    let step_x = (lim_x.1 - lim_x.0) / (n_bins.0 as f64 + 1.0);
+    let step_y = (lim_y.1 - lim_y.0) / (n_bins.1 as f64 + 1.0);
     let mut out = Vec::with_capacity(n_bins.0 * n_bins.1);
     for xi in 0..n_bins.0 {
         for yi in 0..n_bins.1 {
             out.push((
-                step_x / 2.0 + (xi as f64) * step_x,
-                step_y / 2.0 + (yi as f64) * step_y,
+                lim_x.0 + step_x / 2.0 + (xi as f64) * step_x,
+                lim_y.0 + step_y / 2.0 + (yi as f64) * step_y,
             ));
         }
     }
-    (out, vec![step_x / 2.0, step_y / 2.0])
+    (out, vec![step_x, step_y])
 }
 
 #[derive(Debug)]
@@ -97,7 +97,7 @@ impl Pyramid {
         // create root node
         let (root_pos_x, root_pos_y) = ((min_x + max_x) / 2.0, (min_y + max_y) / 2.0);
         let root = Node::new(vec![root_pos_x, root_pos_y]).as_ref();
-        let root_ext = vec![(max_x - root_pos_x) / 2.0, (max_y - root_pos_y) / 2.0];
+        let root_ext = vec![(max_x - root_pos_x), (max_y - root_pos_y)];
         let extents = vec![];
         let mut pyr = Pyramid { root, extents };
         pyr.push_extent(root_ext);
@@ -108,12 +108,15 @@ impl Pyramid {
                 (min_y, max_y),
                 (2_usize.pow(l), 2_usize.pow(l)),
             );
+            // println!("{:?}", bin_pos);
 
             pyr.push_extent(ext);
 
             for b in bin_pos.iter() {
                 let bin = Node::new(vec![b.0, b.1]);
-                pyr.push_node(&bin.as_ref(), 2);
+                // println!("pre: {:#?}", pyr);
+                pyr.push_node(&bin.as_ref(), (l - 1).into());
+                // println!("post: {:#?}", pyr);
             }
         }
 
@@ -149,7 +152,7 @@ impl Pyramid {
             mem::swap(&mut curr_nodes, &mut next_nodes);
             next_nodes.clear();
         }
-        for last_node in next_nodes.iter() {
+        for last_node in curr_nodes.iter() {
             last_node.borrow_mut().push_child(&node);
         }
         self
