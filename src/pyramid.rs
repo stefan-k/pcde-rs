@@ -30,6 +30,7 @@ impl Node {
         }
     }
 
+    /// *giggles*
     pub fn push_child(&mut self, node: &NodeRef) -> &mut Self {
         self.children.push(node.clone());
         self
