@@ -14,7 +14,7 @@ use std::rc::Rc;
 type NodeRef = Rc<RefCell<Node>>;
 type Extent = Vec<f64>;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub struct Node {
     pos: Vec<f64>,
     val: f64,
@@ -69,6 +69,7 @@ fn bin_positions(
     (out, vec![step_x / 2.0, step_y / 2.0])
 }
 
+#[derive(Debug)]
 pub struct Pyramid {
     root: NodeRef,
     extents: Vec<Extent>,
