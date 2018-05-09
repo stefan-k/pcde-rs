@@ -61,8 +61,8 @@ fn bin_positions(
     for xi in 0..n_bins.0 {
         for yi in 0..n_bins.1 {
             out.push((
-                lim_x.0 + step_x / 2.0 + (xi as f64) * step_x,
-                lim_y.0 + step_y / 2.0 + (yi as f64) * step_y,
+                lim_x.0 + step_x * (0.5 + (xi as f64)),
+                lim_y.0 + step_y * (0.5 + (yi as f64)),
             ));
         }
     }
@@ -119,6 +119,7 @@ impl Pyramid {
             pyr.push_extent(ext);
 
             for b in bin_pos.iter() {
+                println!("{:#?}", b);
                 let bin = Node::new(vec![b.0, b.1]);
                 // println!("pre: {:#?}", pyr);
                 pyr.push_node(&bin.as_ref(), (l - 1).into());
