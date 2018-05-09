@@ -11,7 +11,7 @@ use pcde::Pyramid;
 fn main() {
     let lim_x = (-8.0, 8.0);
     let lim_y = (-8.0, 8.0);
-    let n_bins = (4, 4);
+    let n_bins = (8, 8);
     let pyr = Pyramid::new(lim_x, lim_y, n_bins);
     println!("{:#?}", pyr);
 }

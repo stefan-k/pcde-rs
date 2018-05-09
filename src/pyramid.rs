@@ -44,7 +44,7 @@ impl Node {
         pos.iter()
             .zip(self.pos.iter())
             .zip(extent.iter())
-            .map(|((&xn, xk), &l)| (xn > xk - l) && (xn < xk + l))
+            .map(|((&xn, xk), &l)| (xn >= xk - l) && (xn <= xk + l))
             .filter(|x| !x)
             .count() == 0
     }
@@ -55,14 +55,14 @@ fn bin_positions(
     lim_y: (f64, f64),
     n_bins: (usize, usize),
 ) -> (Vec<(f64, f64)>, Extent) {
-    let step_x = (lim_x.1 - lim_x.0) / (n_bins.0 as f64 + 1.0);
-    let step_y = (lim_y.1 - lim_y.0) / (n_bins.1 as f64 + 1.0);
+    let step_x = (lim_x.1 - lim_x.0) / ((n_bins.0 - 1) as f64);
+    let step_y = (lim_y.1 - lim_y.0) / ((n_bins.1 - 1) as f64);
     let mut out = Vec::with_capacity(n_bins.0 * n_bins.1);
     for xi in 0..n_bins.0 {
         for yi in 0..n_bins.1 {
             out.push((
-                lim_x.0 + step_x * (0.5 + (xi as f64)),
-                lim_y.0 + step_y * (0.5 + (yi as f64)),
+                lim_x.0 + step_x * (xi as f64),
+                lim_y.0 + step_y * (yi as f64),
             ));
         }
     }
@@ -98,7 +98,7 @@ impl Pyramid {
         // create root node
         let (root_pos_x, root_pos_y) = ((min_x + max_x) / 2.0, (min_y + max_y) / 2.0);
         let root = Node::new(vec![root_pos_x, root_pos_y]).as_ref();
-        let root_ext = vec![(max_x - root_pos_x), (max_y - root_pos_y)];
+        let root_ext = vec![2.0 * (max_x - root_pos_x), 2.0 * (max_y - root_pos_y)];
         let extents = vec![];
         let limits = vec![(min_x, max_x), (min_y, max_y)];
         let mut pyr = Pyramid {
@@ -114,16 +114,12 @@ impl Pyramid {
                 (min_y, max_y),
                 (2_usize.pow(l), 2_usize.pow(l)),
             );
-            // println!("{:?}", bin_pos);
 
             pyr.push_extent(ext);
 
             for b in bin_pos.iter() {
-                println!("{:#?}", b);
                 let bin = Node::new(vec![b.0, b.1]);
-                // println!("pre: {:#?}", pyr);
                 pyr.push_node(&bin.as_ref(), (l - 1).into());
-                // println!("post: {:#?}", pyr);
             }
         }
 
@@ -146,7 +142,7 @@ impl Pyramid {
                     .filter(|c| {
                         c.borrow().inside(
                             node.borrow().pos.clone(),
-                            self.extent_of_layer((layer as i64 - lay as i64) as usize),
+                            self.extent_of_layer((lay + 1) as usize),
                         )
                     })
                     .map(|c| {
@@ -159,7 +155,6 @@ impl Pyramid {
             mem::swap(&mut curr_nodes, &mut next_nodes);
             next_nodes.clear();
         }
-        // println!("fu: {:#?}", curr_nodes);
         for last_node in curr_nodes.iter() {
             last_node.borrow_mut().push_child(&node);
         }
@@ -168,8 +163,8 @@ impl Pyramid {
 
     fn extent_of_layer(&mut self, layer: usize) -> Extent {
         let n_bins = 2_usize.pow(layer as u32);
-        let step_x = (self.limits[0].1 - self.limits[0].0) / (n_bins as f64 + 1.0);
-        let step_y = (self.limits[1].1 - self.limits[1].0) / (n_bins as f64 + 1.0);
+        let step_x = (self.limits[0].1 - self.limits[0].0) / ((n_bins - 1) as f64);
+        let step_y = (self.limits[1].1 - self.limits[1].0) / ((n_bins - 1) as f64);
         vec![step_x, step_y]
     }
 }
