@@ -12,7 +12,7 @@ fn main() {
     let lim_x = (-8.0, 8.0);
     let lim_y = (-8.0, 8.0);
     // let n_bins = (8, 8);
-    let n_bins = (32, 32);
+    let n_bins = (64, 64);
     println!("Building pyramid...");
     let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
     println!("Adding values...");
@@ -22,4 +22,6 @@ fn main() {
     println!("{:#?}", pyr.get_layer(0));
     println!("{:#?}", pyr.get_layer(1));
     println!("{:#?}", pyr.get_layer(2));
+    // println!("{:#?}", pyr.get_layer(3));
+    // println!("{:#?}", pyr.get_layer(4));
 }

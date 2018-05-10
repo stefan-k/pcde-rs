@@ -139,11 +139,17 @@ impl Pyramid {
 
         // create root node
         let (root_pos_x, root_pos_y) = ((min_x + max_x) / 2.0, (min_y + max_y) / 2.0);
+
         let root = Node::new(vec![root_pos_x, root_pos_y], 0).as_ref();
+
         let root_ext = vec![2.0 * (max_x - root_pos_x), 2.0 * (max_y - root_pos_y)];
+
         let mut root_layer = Layer::new(0, root_ext);
+
         root_layer.push_node(&root);
+
         let limits = vec![(min_x, max_x), (min_y, max_y)];
+
         let mut pyr = Pyramid {
             root,
             layers: Vec::with_capacity(num_layers as usize),
@@ -158,7 +164,7 @@ impl Pyramid {
                 (2_usize.pow(l), 2_usize.pow(l)),
             );
 
-            let mut layer = Layer::new(0, ext);
+            let mut layer = Layer::new(l as usize, ext);
 
             for (id, b) in bin_pos.iter().enumerate() {
                 let bin = Node::new(vec![b.0, b.1], id as u64).as_ref();
