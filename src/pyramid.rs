@@ -16,14 +16,16 @@ type Extent = Vec<f64>;
 
 #[derive(PartialEq, Debug)]
 pub struct Node {
+    id: u64,
     pos: Vec<f64>,
     val: f64,
     children: Vec<NodeRef>,
 }
 
 impl Node {
-    pub fn new(pos: Vec<f64>) -> Node {
+    pub fn new(pos: Vec<f64>, id: u64) -> Node {
         Node {
+            id,
             pos,
             val: 0.0,
             children: vec![],
@@ -70,9 +72,29 @@ fn bin_positions(
 }
 
 #[derive(Debug)]
+pub struct Layer {
+    node: Vec<NodeRef>,
+    extent: Extent,
+}
+
+impl Layer {
+    pub fn new(layer: usize, extent: Extent) -> Self {
+        Layer {
+            node: Vec::with_capacity(layer.pow(2) * layer.pow(2)),
+            extent,
+        }
+    }
+
+    pub fn push_node(&mut self, node: &NodeRef) -> &mut Self {
+        self.node.push(node.clone());
+        self
+    }
+}
+
+#[derive(Debug)]
 pub struct Pyramid {
     root: NodeRef,
-    extents: Vec<Extent>,
+    layers: Vec<Layer>,
     limits: Vec<(f64, f64)>,
 }
 
@@ -97,16 +119,17 @@ impl Pyramid {
 
         // create root node
         let (root_pos_x, root_pos_y) = ((min_x + max_x) / 2.0, (min_y + max_y) / 2.0);
-        let root = Node::new(vec![root_pos_x, root_pos_y]).as_ref();
+        let root = Node::new(vec![root_pos_x, root_pos_y], 0).as_ref();
         let root_ext = vec![2.0 * (max_x - root_pos_x), 2.0 * (max_y - root_pos_y)];
-        let extents = vec![];
+        let mut root_layer = Layer::new(0, root_ext);
+        root_layer.push_node(&root);
         let limits = vec![(min_x, max_x), (min_y, max_y)];
         let mut pyr = Pyramid {
             root,
-            extents,
+            layers: Vec::with_capacity(num_layers as usize),
             limits,
         };
-        pyr.push_extent(root_ext);
+        pyr.push_layer(root_layer);
 
         for l in 1..(num_layers + 1) {
             let (bin_pos, ext) = bin_positions(
@@ -115,21 +138,28 @@ impl Pyramid {
                 (2_usize.pow(l), 2_usize.pow(l)),
             );
 
-            pyr.push_extent(ext);
+            let mut layer = Layer::new(0, ext);
 
-            for b in bin_pos.iter() {
-                let bin = Node::new(vec![b.0, b.1]);
-                pyr.push_node(&bin.as_ref(), (l - 1).into());
+            for (id, b) in bin_pos.iter().enumerate() {
+                let bin = Node::new(vec![b.0, b.1], id as u64).as_ref();
+                layer.push_node(&bin);
+                pyr.push_node(&bin, (l - 1).into());
             }
+            pyr.push_layer(layer);
         }
 
         pyr
     }
 
-    pub fn push_extent(&mut self, ext: Extent) -> &mut Self {
-        self.extents.push(ext);
+    pub fn push_layer(&mut self, layer: Layer) -> &mut Self {
+        self.layers.push(layer);
         self
     }
+
+    // pub fn push_extent(&mut self, ext: Extent) -> &mut Self {
+    //     self.extents.push(ext);
+    //     self
+    // }
 
     pub fn push_node(&mut self, node: &NodeRef, layer: u64) -> &mut Self {
         let mut curr_nodes = vec![self.root.clone()];
