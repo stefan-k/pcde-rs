@@ -54,6 +54,11 @@ impl Node {
             .filter(|x| !x)
             .count() == 0
     }
+
+    pub fn add(&mut self, val: f64) -> &mut Self {
+        self.val += val;
+        self
+    }
 }
 
 fn bin_positions(
@@ -203,5 +208,37 @@ impl Pyramid {
         let step_x = (self.limits[0].1 - self.limits[0].0) / ((n_bins - 1) as f64);
         let step_y = (self.limits[1].1 - self.limits[1].0) / ((n_bins - 1) as f64);
         vec![step_x, step_y]
+    }
+
+    pub fn add_val(&mut self, pos: Vec<f64>, val: f64) -> &mut Self {
+        let mut curr_nodes = vec![self.root.clone()];
+        let mut next_nodes: Vec<NodeRef> = vec![];
+        for lay in 0..self.layers.len() {
+            for cn in curr_nodes.iter() {
+                cn.borrow()
+                    .children
+                    .iter()
+                    .filter(|c| {
+                        c.borrow()
+                            .inside(pos.clone(), self.extent_of_layer((lay + 1) as usize))
+                    })
+                    .map(|c| {
+                        if !next_nodes.contains(c) {
+                            next_nodes.push(c.clone())
+                        }
+                    })
+                    .count();
+            }
+            next_nodes
+                .iter()
+                .map(|x| {
+                    let mut y = x.borrow_mut();
+                    y.add(val);
+                })
+                .count();
+            mem::swap(&mut curr_nodes, &mut next_nodes);
+            next_nodes.clear();
+        }
+        self
     }
 }

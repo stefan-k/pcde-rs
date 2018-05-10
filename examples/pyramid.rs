@@ -12,7 +12,8 @@ fn main() {
     let lim_x = (-8.0, 8.0);
     let lim_y = (-8.0, 8.0);
     let n_bins = (8, 8);
-    let pyr = Pyramid::new(lim_x, lim_y, n_bins);
+    let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
+    pyr.add_val(vec![0.0, 0.0], 1.0);
     println!("{:#?}", pyr);
     println!("{:#?}", pyr.get_layer(0));
     println!("{:#?}", pyr.get_layer(1));
