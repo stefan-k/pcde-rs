@@ -42,6 +42,10 @@ impl Node {
         self.val
     }
 
+    // pub fn pos(&self) -> Vec<f64> {
+    //     self.pos.clone()
+    // }
+
     pub fn as_ref(self) -> NodeRef {
         Rc::new(RefCell::new(self))
     }
@@ -55,8 +59,15 @@ impl Node {
             .count() == 0
     }
 
-    pub fn add(&mut self, val: f64) -> &mut Self {
-        self.val += val;
+    pub fn add(&mut self, pos: Vec<f64>, ext: Extent) -> &mut Self {
+        self.val = self.val
+            + self.pos
+                .iter()
+                .zip(pos.iter())
+                .map(|(a, b)| (a - b).abs())
+                .zip(ext.iter())
+                .map(|(d, e)| 1.0 - d / e)
+                .product::<f64>();
         self
     }
 }
@@ -175,18 +186,15 @@ impl Pyramid {
 
     pub fn push_node(&mut self, node: &NodeRef, layer: u64) -> &mut Self {
         let mut curr_nodes = vec![self.root.clone()];
-        let mut next_nodes: Vec<NodeRef> = vec![];
+        let mut next_nodes: Vec<NodeRef> = Vec::with_capacity(200);
+        let npos = node.borrow().pos.clone();
         for lay in 0..layer {
+            let ext = self.extent_of_layer((lay + 1) as usize);
             for cn in curr_nodes.iter() {
                 cn.borrow()
                     .children
                     .iter()
-                    .filter(|c| {
-                        c.borrow().inside(
-                            node.borrow().pos.clone(),
-                            self.extent_of_layer((lay + 1) as usize),
-                        )
-                    })
+                    .filter(|c| c.borrow().inside(npos.clone(), ext.clone()))
                     .map(|c| {
                         if !next_nodes.contains(c) {
                             next_nodes.push(c.clone())
@@ -210,18 +218,16 @@ impl Pyramid {
         vec![step_x, step_y]
     }
 
-    pub fn add_val(&mut self, pos: Vec<f64>, val: f64) -> &mut Self {
+    pub fn add_val(&mut self, pos: Vec<f64>) -> &mut Self {
         let mut curr_nodes = vec![self.root.clone()];
         let mut next_nodes: Vec<NodeRef> = vec![];
         for lay in 0..self.layers.len() {
+            let ext = self.extent_of_layer((lay + 1) as usize);
             for cn in curr_nodes.iter() {
                 cn.borrow()
                     .children
                     .iter()
-                    .filter(|c| {
-                        c.borrow()
-                            .inside(pos.clone(), self.extent_of_layer((lay + 1) as usize))
-                    })
+                    .filter(|c| c.borrow().inside(pos.clone(), ext.clone()))
                     .map(|c| {
                         if !next_nodes.contains(c) {
                             next_nodes.push(c.clone())
@@ -233,7 +239,7 @@ impl Pyramid {
                 .iter()
                 .map(|x| {
                     let mut y = x.borrow_mut();
-                    y.add(val);
+                    y.add(pos.clone(), ext.clone());
                 })
                 .count();
             mem::swap(&mut curr_nodes, &mut next_nodes);
