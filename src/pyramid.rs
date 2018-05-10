@@ -8,6 +8,7 @@
 //! Pyramid
 
 use std::cell::RefCell;
+use std::f64;
 use std::mem;
 use std::rc::Rc;
 
@@ -42,10 +43,6 @@ impl Node {
         self.val
     }
 
-    // pub fn pos(&self) -> Vec<f64> {
-    //     self.pos.clone()
-    // }
-
     pub fn as_ref(self) -> NodeRef {
         Rc::new(RefCell::new(self))
     }
@@ -67,7 +64,7 @@ impl Node {
                 .map(|(a, b)| (a - b).abs())
                 .zip(ext.iter())
                 .map(|(d, e)| 1.0 - d / e)
-                .product::<f64>();
+                .fold(f64::INFINITY, |a, b| a.min(b));
         self
     }
 }
