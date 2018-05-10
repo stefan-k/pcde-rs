@@ -38,6 +38,10 @@ impl Node {
         self
     }
 
+    pub fn val(&self) -> f64 {
+        self.val
+    }
+
     pub fn as_ref(self) -> NodeRef {
         Rc::new(RefCell::new(self))
     }
@@ -156,10 +160,13 @@ impl Pyramid {
         self
     }
 
-    // pub fn push_extent(&mut self, ext: Extent) -> &mut Self {
-    //     self.extents.push(ext);
-    //     self
-    // }
+    pub fn get_layer(&self, layer: usize) -> Vec<f64> {
+        self.layers[layer]
+            .node
+            .iter()
+            .map(|x| x.borrow().val())
+            .collect()
+    }
 
     pub fn push_node(&mut self, node: &NodeRef, layer: u64) -> &mut Self {
         let mut curr_nodes = vec![self.root.clone()];

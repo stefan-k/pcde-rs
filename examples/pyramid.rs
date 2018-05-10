@@ -14,4 +14,7 @@ fn main() {
     let n_bins = (8, 8);
     let pyr = Pyramid::new(lim_x, lim_y, n_bins);
     println!("{:#?}", pyr);
+    println!("{:#?}", pyr.get_layer(0));
+    println!("{:#?}", pyr.get_layer(1));
+    println!("{:#?}", pyr.get_layer(2));
 }
