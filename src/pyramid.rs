@@ -57,14 +57,14 @@ impl Node {
     }
 
     pub fn add(&mut self, pos: Vec<f64>, ext: Extent) -> &mut Self {
-        self.val = self.val
-            + self.pos
-                .iter()
-                .zip(pos.iter())
-                .map(|(a, b)| (a - b).abs())
-                .zip(ext.iter())
-                .map(|(d, e)| 1.0 - d / e)
-                .fold(f64::INFINITY, |a, b| a.min(b));
+        // println!("{:?} x {:?} x {:?}", self.pos, pos, ext);
+        self.val += self.pos
+            .iter()
+            .zip(pos.iter())
+            .map(|(a, b)| (a - b).abs())
+            .zip(ext.iter())
+            .map(|(d, e)| 1.0 - d / e)
+            .fold(f64::INFINITY, |a, b| a.min(b));
         self
     }
 }
@@ -74,14 +74,16 @@ fn bin_positions(
     lim_y: (f64, f64),
     n_bins: (usize, usize),
 ) -> (Vec<(f64, f64)>, Extent) {
-    let step_x = (lim_x.1 - lim_x.0) / ((n_bins.0 - 1) as f64);
-    let step_y = (lim_y.1 - lim_y.0) / ((n_bins.1 - 1) as f64);
+    // let step_x = (lim_x.1 - lim_x.0) / ((n_bins.0 - 1) as f64);
+    // let step_y = (lim_y.1 - lim_y.0) / ((n_bins.1 - 1) as f64);
+    let step_x = (lim_x.1 - lim_x.0) / ((n_bins.0 + 1) as f64);
+    let step_y = (lim_y.1 - lim_y.0) / ((n_bins.1 + 1) as f64);
     let mut out = Vec::with_capacity(n_bins.0 * n_bins.1);
     for xi in 0..n_bins.0 {
         for yi in 0..n_bins.1 {
             out.push((
-                lim_x.0 + step_x * (xi as f64),
-                lim_y.0 + step_y * (yi as f64),
+                lim_x.0 + step_x * (1.0 + xi as f64),
+                lim_y.0 + step_y * (1.0 + yi as f64),
             ));
         }
     }
@@ -216,8 +218,10 @@ impl Pyramid {
 
     fn extent_of_layer(&mut self, layer: usize) -> Extent {
         let n_bins = 2_usize.pow(layer as u32);
-        let step_x = (self.limits[0].1 - self.limits[0].0) / ((n_bins - 1) as f64);
-        let step_y = (self.limits[1].1 - self.limits[1].0) / ((n_bins - 1) as f64);
+        // let step_x = (self.limits[0].1 - self.limits[0].0) / ((n_bins - 1) as f64);
+        // let step_y = (self.limits[1].1 - self.limits[1].0) / ((n_bins - 1) as f64);
+        let step_x = (self.limits[0].1 - self.limits[0].0) / ((n_bins + 1) as f64);
+        let step_y = (self.limits[1].1 - self.limits[1].0) / ((n_bins + 1) as f64);
         vec![step_x, step_y]
     }
 
