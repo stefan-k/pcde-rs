@@ -32,6 +32,12 @@ impl PartialEq for Node {
     }
 }
 
+// impl PartialEq for RwLock<Node> {
+//     fn eq(&self, other: &RwLock<Node>) -> bool {
+//         self.read().unwrap().id == other.read().unwrap().id
+//     }
+// }
+
 impl Node {
     pub fn new(pos: Vec<f64>, id: u64) -> Node {
         Node {
@@ -40,6 +46,10 @@ impl Node {
             val: 0.0,
             children: vec![],
         }
+    }
+
+    pub fn id(&self) -> u64 {
+        self.id
     }
 
     /// *giggles*
@@ -209,7 +219,12 @@ impl Pyramid {
                     .iter()
                     .filter(|c| c.read().unwrap().inside(npos.clone(), ext.clone()))
                     .map(|c| {
-                        if !next_nodes.contains(c) {
+                        let c_id = c.read().unwrap().id();
+                        if !next_nodes
+                            .iter()
+                            .map(|x| x.read().unwrap().id() == c_id)
+                            .fold(false, |acc, x| acc | x)
+                        {
                             next_nodes.push(c.clone())
                         }
                     })
@@ -245,7 +260,12 @@ impl Pyramid {
                     .iter()
                     .filter(|c| c.read().unwrap().inside(pos.clone(), ext.clone()))
                     .map(|c| {
-                        if !next_nodes.contains(c) {
+                        let c_id = c.read().unwrap().id();
+                        if !next_nodes
+                            .iter()
+                            .map(|x| x.read().unwrap().id() == c_id)
+                            .fold(false, |acc, x| acc | x)
+                        {
                             next_nodes.push(c.clone())
                         }
                     })
