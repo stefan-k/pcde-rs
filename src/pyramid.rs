@@ -7,20 +7,29 @@
 
 //! Pyramid
 
-use std::cell::RefCell;
+// use std::cell::RefCell;
+// use std::rc::Rc;
 use std::f64;
 use std::mem;
-use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::RwLock;
 
-type NodeRef = Rc<RefCell<Node>>;
+// type NodeRef = Arc<RefCell<Node>>;
+type NodeRef = Arc<RwLock<Node>>;
 type Extent = Vec<f64>;
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Node {
     id: u64,
     pos: Vec<f64>,
     val: f64,
     children: Vec<NodeRef>,
+}
+
+impl PartialEq for Node {
+    fn eq(&self, other: &Node) -> bool {
+        self.id == other.id
+    }
 }
 
 impl Node {
@@ -44,7 +53,7 @@ impl Node {
     }
 
     pub fn as_ref(self) -> NodeRef {
-        Rc::new(RefCell::new(self))
+        Arc::new(RwLock::new(self))
     }
 
     pub fn inside(&self, pos: Vec<f64>, extent: Extent) -> bool {
@@ -74,8 +83,6 @@ fn bin_positions(
     lim_y: (f64, f64),
     n_bins: (usize, usize),
 ) -> (Vec<(f64, f64)>, Extent) {
-    // let step_x = (lim_x.1 - lim_x.0) / ((n_bins.0 - 1) as f64);
-    // let step_y = (lim_y.1 - lim_y.0) / ((n_bins.1 - 1) as f64);
     let step_x = (lim_x.1 - lim_x.0) / ((n_bins.0 + 1) as f64);
     let step_y = (lim_y.1 - lim_y.0) / ((n_bins.1 + 1) as f64);
     let mut out = Vec::with_capacity(n_bins.0 * n_bins.1);
@@ -185,21 +192,22 @@ impl Pyramid {
         self.layers[layer]
             .node
             .iter()
-            .map(|x| x.borrow().val())
+            .map(|x| x.read().unwrap().val())
             .collect()
     }
 
     pub fn push_node(&mut self, node: &NodeRef, layer: u64) -> &mut Self {
         let mut curr_nodes = vec![self.root.clone()];
         let mut next_nodes: Vec<NodeRef> = Vec::with_capacity(200);
-        let npos = node.borrow().pos.clone();
+        let npos = node.read().unwrap().pos.clone();
         for lay in 0..layer {
             let ext = self.extent_of_layer((lay + 1) as usize);
             for cn in curr_nodes.iter() {
-                cn.borrow()
+                cn.read()
+                    .unwrap()
                     .children
                     .iter()
-                    .filter(|c| c.borrow().inside(npos.clone(), ext.clone()))
+                    .filter(|c| c.read().unwrap().inside(npos.clone(), ext.clone()))
                     .map(|c| {
                         if !next_nodes.contains(c) {
                             next_nodes.push(c.clone())
@@ -211,7 +219,7 @@ impl Pyramid {
             next_nodes.clear();
         }
         for last_node in curr_nodes.iter() {
-            last_node.borrow_mut().push_child(&node);
+            last_node.write().unwrap().push_child(&node);
         }
         self
     }
@@ -231,10 +239,11 @@ impl Pyramid {
         for lay in 0..self.layers.len() {
             let ext = self.extent_of_layer((lay + 1) as usize);
             for cn in curr_nodes.iter() {
-                cn.borrow()
+                cn.read()
+                    .unwrap()
                     .children
                     .iter()
-                    .filter(|c| c.borrow().inside(pos.clone(), ext.clone()))
+                    .filter(|c| c.read().unwrap().inside(pos.clone(), ext.clone()))
                     .map(|c| {
                         if !next_nodes.contains(c) {
                             next_nodes.push(c.clone())
@@ -245,7 +254,7 @@ impl Pyramid {
             next_nodes
                 .iter()
                 .map(|x| {
-                    let mut y = x.borrow_mut();
+                    let mut y = x.write().unwrap();
                     y.add(pos.clone(), ext.clone());
                 })
                 .count();
