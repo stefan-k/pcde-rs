@@ -80,6 +80,11 @@ impl Node {
             .fold(f64::INFINITY, |a, b| a.min(b));
         self
     }
+
+    pub fn clear(&mut self) -> &mut Self {
+        self.val = 0.0;
+        self
+    }
 }
 
 fn bin_positions(
@@ -272,6 +277,16 @@ impl Pyramid {
                 .count();
             mem::swap(&mut curr_nodes, &mut next_nodes);
             next_nodes.clear();
+        }
+        self
+    }
+
+    pub fn clear(&mut self) -> &mut Self {
+        for lay in self.layers.iter() {
+            for y in lay.node.iter() {
+                let mut a = y.write().unwrap();
+                a.clear();
+            }
         }
         self
     }

@@ -89,4 +89,38 @@ mod tests {
             black_box(pyr.add_val(vec![x, y]));
         });
     }
+
+    // CLEAR
+    #[bench]
+    fn pyramid_64x64_clear(b: &mut Bencher) {
+        let lim_x = (-8.0, 8.0);
+        let lim_y = (-8.0, 8.0);
+        let n_bins = (64, 64);
+        let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
+        b.iter(|| {
+            black_box(pyr.clear());
+        });
+    }
+
+    #[bench]
+    fn pyramid_256x256_clear(b: &mut Bencher) {
+        let lim_x = (-8.0, 8.0);
+        let lim_y = (-8.0, 8.0);
+        let n_bins = (256, 256);
+        let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
+        b.iter(|| {
+            black_box(pyr.clear());
+        });
+    }
+
+    #[bench]
+    fn pyramid_512x512_clear(b: &mut Bencher) {
+        let lim_x = (-8.0, 8.0);
+        let lim_y = (-8.0, 8.0);
+        let n_bins = (512, 512);
+        let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
+        b.iter(|| {
+            black_box(pyr.clear());
+        });
+    }
 }
