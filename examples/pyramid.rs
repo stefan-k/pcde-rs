@@ -27,13 +27,13 @@ fn main() {
     let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
     println!("Adding values...");
 
-    PROFILER.lock().unwrap().start("./myprof.profile").unwrap();
+    // PROFILER.lock().unwrap().start("./myprof.profile").unwrap();
     for _ in 0..(256 * 256) {
         let x: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
         let y: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
         pyr.add_val(vec![x, y]);
     }
-    PROFILER.lock().unwrap().stop().unwrap();
+    // PROFILER.lock().unwrap().stop().unwrap();
     //
     // pyr.add_val(vec![0.0, 0.0]);
     // pyr.add_val(vec![1.0, 0.5]);
