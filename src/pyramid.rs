@@ -32,12 +32,6 @@ impl PartialEq for Node {
     }
 }
 
-// impl PartialEq for RwLock<Node> {
-//     fn eq(&self, other: &RwLock<Node>) -> bool {
-//         self.read().unwrap().id == other.read().unwrap().id
-//     }
-// }
-
 impl Node {
     pub fn new(pos: Vec<f64>, id: u64) -> Node {
         Node {
@@ -241,8 +235,6 @@ impl Pyramid {
 
     fn extent_of_layer(&mut self, layer: usize) -> Extent {
         let n_bins = 2_usize.pow(layer as u32);
-        // let step_x = (self.limits[0].1 - self.limits[0].0) / ((n_bins - 1) as f64);
-        // let step_y = (self.limits[1].1 - self.limits[1].0) / ((n_bins - 1) as f64);
         let step_x = (self.limits[0].1 - self.limits[0].0) / ((n_bins + 1) as f64);
         let step_y = (self.limits[1].1 - self.limits[1].0) / ((n_bins + 1) as f64);
         vec![step_x, step_y]
