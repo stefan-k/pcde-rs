@@ -40,11 +40,13 @@ fn main() {
     // println!("{:#?}", pyr);
     // println!("{:#?}", pyr.get_layer(0));
     // println!("{:#?}", pyr.get_layer(1));
-    // println!("{:#?}", pyr.get_layer(2));
+    println!("{:#?}", pyr.get_layer(2));
     // println!("{:#?}", pyr.get_layer(3));
     // println!("{:#?}", pyr.get_layer(4));
     // println!("{:#?}", pyr.get_layer(5));
     // println!("{:#?}", pyr.get_layer(6));
     // println!("{:#?}", pyr.get_layer(7));
-    println!("{:#?}", pyr.get_layer(8));
+    // println!("{:#?}", pyr.get_layer(8));
+    pyr.clear();
+    println!("{:#?}", pyr.get_layer(2));
 }

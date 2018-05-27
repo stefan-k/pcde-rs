@@ -71,7 +71,8 @@ impl Node {
 
     pub fn add(&mut self, pos: Vec<f64>, ext: Extent) -> &mut Self {
         // println!("{:?} x {:?} x {:?}", self.pos, pos, ext);
-        self.val += self.pos
+        self.val += self
+            .pos
             .iter()
             .zip(pos.iter())
             .map(|(a, b)| (a - b).abs())
@@ -105,6 +106,55 @@ fn bin_positions(
     }
     (out, vec![step_x, step_y])
 }
+
+// fn bin_positions(
+//     lim_min: Vec<f64>,
+//     lim_max: Vec<f64>,
+//     n_bins: Vec<usize>,
+// ) -> (Vec<Vec<f64>>, Extent) {
+//     let dims = n_bins.len();
+//     assert!(lim_min.len() == lim_max.len());
+//     assert!(lim_min.len() == dims);
+//     let steps: Vec<f64> = lim_min
+//         .iter()
+//         .zip(lim_max.iter())
+//         .zip(n_bins.iter())
+//         .map(|((min, max), n_bin)| (max - min) / ((n_bin + 1) as f64))
+//         .collect();
+//     let tot_bins = n_bins.iter().fold(1, |acc, x| acc * x);
+//     let mut coords: Vec<Vec<f64>> = Vec::with_capacity(dims);
+//     for d in 0..dims {
+//         coords.push(
+//             (0..n_bins[d])
+//                 .into_iter()
+//                 .map(|b| lim_min[d] + steps[d] * (1.0 + b as f64))
+//                 .collect(),
+//         );
+//     }
+//     let mut out: Vec<Vec<f64>> = vec![vec![0.0; dims]; tot_bins];
+// 
+//     for idx in 0..dims {
+//         let mult = 2i64.pow((dims - idx) as u32) as usize;
+//         for nb in 0..n_bins[idx] {
+//             // out[nb][idx]
+//             for rep in 0..mult {
+//                 // out[nb+rep][idx]
+//                 out[nb * mult + rep][idx] = coords[idx][nb];
+//             }
+//         }
+//     }
+// 
+//     // for xi in 0..n_bins.0 {
+//     //     for yi in 0..n_bins.1 {
+//     //         out.push((
+//     //             lim_x.0 + step_x * (1.0 + xi as f64),
+//     //             lim_y.0 + step_y * (1.0 + yi as f64),
+//     //         ));
+//     //     }
+//     // }
+//     // (out, vec![step_x, step_y])
+//     (out, steps)
+// }
 
 #[derive(Debug)]
 pub struct Layer {
