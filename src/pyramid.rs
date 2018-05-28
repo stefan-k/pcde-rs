@@ -107,10 +107,7 @@ impl Node {
 //     (out, vec![step_x, step_y])
 // }
 
-fn bin_positions(
-    lim: Vec<(f64, f64)>,
-    n_bins: Vec<usize>,
-) -> (Vec<Vec<f64>>, Extent) {
+fn bin_positions(lim: Vec<(f64, f64)>, n_bins: Vec<usize>) -> (Vec<Vec<f64>>, Extent) {
     let dims = n_bins.len();
     assert!(lim.len() == dims);
     let steps: Vec<f64> = lim
@@ -199,49 +196,38 @@ pub struct Pyramid {
 }
 
 impl Pyramid {
-    pub fn new(
-        (min_x, max_x): (f64, f64),
-        (min_y, max_y): (f64, f64),
-        (n_bins_x, n_bins_y): (u64, u64),
-    ) -> Self {
-        // first, create individual layers with their corresponding bin positions and extents
-        // second, connect the layers properly
-
+    pub fn new(limits: Vec<(f64, f64)>, bins: Vec<u64>) -> Self {
         // Bins need to be a power of two
-        assert!(n_bins_x.is_power_of_two());
-        assert!(n_bins_y.is_power_of_two());
+        bins.iter().for_each(|x| assert!(x.is_power_of_two()));
 
-        // for now, assure that the number of bins are the same in all directions
-        assert!(n_bins_x == n_bins_y);
-
-        // let num_layers = [(n_bins_x as f64).log2(), (n_bins_y as f64).log2()].max();
-        let num_layers = (n_bins_x as f64).log2() as u32;
+        let num_layers = bins
+            .iter()
+            .map(|b| (*b as f64).log2() as u32)
+            .max()
+            .unwrap();
 
         // create root node
-        let (root_pos_x, root_pos_y) = ((min_x + max_x) / 2.0, (min_y + max_y) / 2.0);
-
-        let root = Node::new(vec![root_pos_x, root_pos_y], 0).as_ref();
-
-        let root_ext = vec![2.0 * (max_x - root_pos_x), 2.0 * (max_y - root_pos_y)];
+        let root_pos: Vec<f64> = limits.iter().map(|(min, max)| (min + max) / 2.0).collect();
+        let root = Node::new(root_pos.clone(), 0).as_ref();
+        let root_ext: Vec<f64> = limits
+            .iter()
+            .zip(root_pos.iter())
+            .map(|((_, max), pos)| 2.0 * (max - pos))
+            .collect();
 
         let mut root_layer = Layer::new(0, root_ext);
-
         root_layer.push_node(&root);
-
-        let limits = vec![(min_x, max_x), (min_y, max_y)];
 
         let mut pyr = Pyramid {
             root,
             layers: Vec::with_capacity(num_layers as usize),
-            limits,
+            limits: limits.clone(),
         };
         pyr.push_layer(root_layer);
 
         for l in 1..(num_layers + 1) {
-            let (bin_pos, ext) = bin_positions(
-                vec![(min_x, max_x), (min_y, max_y)],
-                vec![2_usize.pow(l), 2_usize.pow(l)],
-            );
+            let (bin_pos, ext) =
+                bin_positions(limits.clone(), vec![2_usize.pow(l), 2_usize.pow(l)]);
 
             let mut layer = Layer::new(l as usize, ext);
 

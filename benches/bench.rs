@@ -25,9 +25,9 @@ mod tests {
     fn pyramid_8x8(b: &mut Bencher) {
         let lim_x = (-8.0, 8.0);
         let lim_y = (-8.0, 8.0);
-        let n_bins = (8, 8);
+        let n_bins = vec![8, 8];
         b.iter(|| {
-            black_box(Pyramid::new(lim_x, lim_y, n_bins));
+            black_box(Pyramid::new(vec![lim_x, lim_y], n_bins.clone()));
         });
     }
 
@@ -35,9 +35,9 @@ mod tests {
     fn pyramid_64x64(b: &mut Bencher) {
         let lim_x = (-8.0, 8.0);
         let lim_y = (-8.0, 8.0);
-        let n_bins = (64, 64);
+        let n_bins = vec![64, 64];
         b.iter(|| {
-            black_box(Pyramid::new(lim_x, lim_y, n_bins));
+            black_box(Pyramid::new(vec![lim_x, lim_y], n_bins.clone()));
         });
     }
 
@@ -55,8 +55,8 @@ mod tests {
     fn pyramid_64x64_add_point(b: &mut Bencher) {
         let lim_x = (-8.0, 8.0);
         let lim_y = (-8.0, 8.0);
-        let n_bins = (64, 64);
-        let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
+        let n_bins = vec![64, 64];
+        let mut pyr = Pyramid::new(vec![lim_x, lim_y], n_bins);
         b.iter(|| {
             let x: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
             let y: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
@@ -68,8 +68,8 @@ mod tests {
     fn pyramid_256x256_add_point(b: &mut Bencher) {
         let lim_x = (-8.0, 8.0);
         let lim_y = (-8.0, 8.0);
-        let n_bins = (256, 256);
-        let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
+        let n_bins = vec![256, 256];
+        let mut pyr = Pyramid::new(vec![lim_x, lim_y], n_bins);
         b.iter(|| {
             let x: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
             let y: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
@@ -81,8 +81,8 @@ mod tests {
     fn pyramid_512x512_add_point(b: &mut Bencher) {
         let lim_x = (-8.0, 8.0);
         let lim_y = (-8.0, 8.0);
-        let n_bins = (512, 512);
-        let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
+        let n_bins = vec![512, 512];
+        let mut pyr = Pyramid::new(vec![lim_x, lim_y], n_bins);
         b.iter(|| {
             let x: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
             let y: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
@@ -95,8 +95,8 @@ mod tests {
     fn pyramid_64x64_clear(b: &mut Bencher) {
         let lim_x = (-8.0, 8.0);
         let lim_y = (-8.0, 8.0);
-        let n_bins = (64, 64);
-        let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
+        let n_bins = vec![64, 64];
+        let mut pyr = Pyramid::new(vec![lim_x, lim_y], n_bins);
         b.iter(|| {
             black_box(pyr.clear());
         });
@@ -106,8 +106,8 @@ mod tests {
     fn pyramid_256x256_clear(b: &mut Bencher) {
         let lim_x = (-8.0, 8.0);
         let lim_y = (-8.0, 8.0);
-        let n_bins = (256, 256);
-        let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
+        let n_bins = vec![256, 256];
+        let mut pyr = Pyramid::new(vec![lim_x, lim_y], n_bins);
         b.iter(|| {
             black_box(pyr.clear());
         });
@@ -117,8 +117,8 @@ mod tests {
     fn pyramid_512x512_clear(b: &mut Bencher) {
         let lim_x = (-8.0, 8.0);
         let lim_y = (-8.0, 8.0);
-        let n_bins = (512, 512);
-        let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
+        let n_bins = vec![512, 512];
+        let mut pyr = Pyramid::new(vec![lim_x, lim_y], n_bins);
         b.iter(|| {
             black_box(pyr.clear());
         });

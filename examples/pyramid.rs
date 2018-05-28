@@ -24,7 +24,7 @@ fn main() {
     // let n_bins = (128, 128);
     let n_bins = (256, 256);
     println!("Building pyramid...");
-    let mut pyr = Pyramid::new(lim_x, lim_y, n_bins);
+    let mut pyr = Pyramid::new(vec![lim_x, lim_y], n_bins);
     println!("Adding values...");
 
     // PROFILER.lock().unwrap().start("./myprof.profile").unwrap();
