@@ -241,11 +241,6 @@ impl Pyramid {
         pyr.push_layer(root_layer);
 
         for l in 1..(num_layers + 1) {
-            // let (bin_pos, ext) = bin_positions(
-            //     (min_x, max_x),
-            //     (min_y, max_y),
-            //     (2_usize.pow(l), 2_usize.pow(l)),
-            // );
             let (bin_pos, ext) = bin_positions(
                 vec![min_x, min_y],
                 vec![max_x, max_y],
@@ -254,8 +249,8 @@ impl Pyramid {
 
             let mut layer = Layer::new(l as usize, ext);
 
-            for (id, b) in bin_pos.iter().enumerate() {
-                let bin = Node::new(vec![b[0], b[1]], id as u64).as_ref();
+            for (id, b) in bin_pos.into_iter().enumerate() {
+                let bin = Node::new(b, id as u64).as_ref();
                 layer.push_node(&bin);
                 pyr.push_node(&bin, (l - 1).into());
             }
