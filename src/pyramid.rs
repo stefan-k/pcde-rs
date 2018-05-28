@@ -88,73 +88,91 @@ impl Node {
     }
 }
 
-fn bin_positions(
-    lim_x: (f64, f64),
-    lim_y: (f64, f64),
-    n_bins: (usize, usize),
-) -> (Vec<(f64, f64)>, Extent) {
-    let step_x = (lim_x.1 - lim_x.0) / ((n_bins.0 + 1) as f64);
-    let step_y = (lim_y.1 - lim_y.0) / ((n_bins.1 + 1) as f64);
-    let mut out = Vec::with_capacity(n_bins.0 * n_bins.1);
-    for xi in 0..n_bins.0 {
-        for yi in 0..n_bins.1 {
-            out.push((
-                lim_x.0 + step_x * (1.0 + xi as f64),
-                lim_y.0 + step_y * (1.0 + yi as f64),
-            ));
-        }
-    }
-    (out, vec![step_x, step_y])
-}
-
 // fn bin_positions(
-//     lim_min: Vec<f64>,
-//     lim_max: Vec<f64>,
-//     n_bins: Vec<usize>,
-// ) -> (Vec<Vec<f64>>, Extent) {
-//     let dims = n_bins.len();
-//     assert!(lim_min.len() == lim_max.len());
-//     assert!(lim_min.len() == dims);
-//     let steps: Vec<f64> = lim_min
-//         .iter()
-//         .zip(lim_max.iter())
-//         .zip(n_bins.iter())
-//         .map(|((min, max), n_bin)| (max - min) / ((n_bin + 1) as f64))
-//         .collect();
-//     let tot_bins = n_bins.iter().fold(1, |acc, x| acc * x);
-//     let mut coords: Vec<Vec<f64>> = Vec::with_capacity(dims);
-//     for d in 0..dims {
-//         coords.push(
-//             (0..n_bins[d])
-//                 .into_iter()
-//                 .map(|b| lim_min[d] + steps[d] * (1.0 + b as f64))
-//                 .collect(),
-//         );
-//     }
-//     let mut out: Vec<Vec<f64>> = vec![vec![0.0; dims]; tot_bins];
-// 
-//     for idx in 0..dims {
-//         let mult = 2i64.pow((dims - idx) as u32) as usize;
-//         for nb in 0..n_bins[idx] {
-//             // out[nb][idx]
-//             for rep in 0..mult {
-//                 // out[nb+rep][idx]
-//                 out[nb * mult + rep][idx] = coords[idx][nb];
-//             }
+//     lim_x: (f64, f64),
+//     lim_y: (f64, f64),
+//     n_bins: (usize, usize),
+// ) -> (Vec<(f64, f64)>, Extent) {
+//     let step_x = (lim_x.1 - lim_x.0) / ((n_bins.0 + 1) as f64);
+//     let step_y = (lim_y.1 - lim_y.0) / ((n_bins.1 + 1) as f64);
+//     let mut out = Vec::with_capacity(n_bins.0 * n_bins.1);
+//     for xi in 0..n_bins.0 {
+//         for yi in 0..n_bins.1 {
+//             out.push((
+//                 lim_x.0 + step_x * (1.0 + xi as f64),
+//                 lim_y.0 + step_y * (1.0 + yi as f64),
+//             ));
 //         }
 //     }
-// 
-//     // for xi in 0..n_bins.0 {
-//     //     for yi in 0..n_bins.1 {
-//     //         out.push((
-//     //             lim_x.0 + step_x * (1.0 + xi as f64),
-//     //             lim_y.0 + step_y * (1.0 + yi as f64),
-//     //         ));
-//     //     }
-//     // }
-//     // (out, vec![step_x, step_y])
-//     (out, steps)
+//     (out, vec![step_x, step_y])
 // }
+
+fn bin_positions(
+    lim_min: Vec<f64>,
+    lim_max: Vec<f64>,
+    n_bins: Vec<usize>,
+) -> (Vec<Vec<f64>>, Extent) {
+    let dims = n_bins.len();
+    assert!(lim_min.len() == lim_max.len());
+    assert!(lim_min.len() == dims);
+    let steps: Vec<f64> = lim_min
+        .iter()
+        .zip(lim_max.iter())
+        .zip(n_bins.iter())
+        .map(|((min, max), n_bin)| (max - min) / ((n_bin + 1) as f64))
+        .collect();
+    let tot_bins = n_bins.iter().fold(1, |acc, x| acc * x);
+
+    let mut out: Vec<Vec<f64>> = Vec::with_capacity(tot_bins);
+    match dims {
+        1 => {
+            for a in 0..n_bins[0] {
+                out.push(vec![lim_min[0] + steps[0] * (1.0 + a as f64)]);
+            }
+        }
+        2 => {
+            for a in 0..n_bins[0] {
+                let a_tmp = lim_min[0] + steps[0] * (1.0 + a as f64);
+                for b in 0..n_bins[1] {
+                    out.push(vec![a_tmp, lim_min[1] + steps[1] * (1.0 + b as f64)]);
+                }
+            }
+        }
+        3 => {
+            for a in 0..n_bins[0] {
+                let a_tmp = lim_min[0] + steps[0] * (1.0 + a as f64);
+                for b in 0..n_bins[1] {
+                    let b_tmp = lim_min[1] + steps[1] * (1.0 + b as f64);
+                    for c in 0..n_bins[2] {
+                        out.push(vec![a_tmp, b_tmp, lim_min[2] + steps[2] * (1.0 + c as f64)]);
+                    }
+                }
+            }
+        }
+        4 => {
+            for a in 0..n_bins[0] {
+                let a_tmp = lim_min[0] + steps[0] * (1.0 + a as f64);
+                for b in 0..n_bins[1] {
+                    let b_tmp = lim_min[1] + steps[1] * (1.0 + b as f64);
+                    for c in 0..n_bins[2] {
+                        let c_tmp = lim_min[2] + steps[2] * (1.0 + c as f64);
+                        for d in 0..n_bins[3] {
+                            out.push(vec![
+                                a_tmp,
+                                b_tmp,
+                                c_tmp,
+                                lim_min[3] + steps[3] * (1.0 + d as f64),
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+        _ => unimplemented!(),
+    }
+
+    (out, steps)
+}
 
 #[derive(Debug)]
 pub struct Layer {
@@ -223,16 +241,21 @@ impl Pyramid {
         pyr.push_layer(root_layer);
 
         for l in 1..(num_layers + 1) {
+            // let (bin_pos, ext) = bin_positions(
+            //     (min_x, max_x),
+            //     (min_y, max_y),
+            //     (2_usize.pow(l), 2_usize.pow(l)),
+            // );
             let (bin_pos, ext) = bin_positions(
-                (min_x, max_x),
-                (min_y, max_y),
-                (2_usize.pow(l), 2_usize.pow(l)),
+                vec![min_x, min_y],
+                vec![max_x, max_y],
+                vec![2_usize.pow(l), 2_usize.pow(l)],
             );
 
             let mut layer = Layer::new(l as usize, ext);
 
             for (id, b) in bin_pos.iter().enumerate() {
-                let bin = Node::new(vec![b.0, b.1], id as u64).as_ref();
+                let bin = Node::new(vec![b[0], b[1]], id as u64).as_ref();
                 layer.push_node(&bin);
                 pyr.push_node(&bin, (l - 1).into());
             }
