@@ -21,6 +21,16 @@ mod tests {
     use rand::Rng;
     use test::{black_box, Bencher};
 
+    // #[bench]
+    // fn pyramid_8(b: &mut Bencher) {
+    //     let lim_x = (-8.0, 8.0);
+    //     let n_bins = 8;
+    //     // println!("{} {}", vec![lim_x].len(), n_bins.len());
+    //     b.iter(|| {
+    //         black_box(Pyramid::new(vec![lim_x], vec![n_bins]));
+    //     });
+    // }
+
     #[bench]
     fn pyramid_8x8(b: &mut Bencher) {
         let lim_x = (-8.0, 8.0);
