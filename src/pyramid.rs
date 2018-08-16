@@ -200,14 +200,22 @@ pub struct Pyramid {
     root: NodeRef,
     layers: Vec<Layer>,
     limits: Vec<(f64, f64)>,
+    n_bins: Vec<usize>,
+}
+
+impl PartialEq for Pyramid {
+    /// Pyramids are equal if they have the same strcture. This may be stupid.
+    fn eq(&self, other: &Pyramid) -> bool {
+        self.limits == other.limits && self.n_bins == other.n_bins
+    }
 }
 
 impl Pyramid {
-    pub fn new(limits: Vec<(f64, f64)>, bins: Vec<usize>) -> Self {
+    pub fn new(limits: Vec<(f64, f64)>, n_bins: Vec<usize>) -> Self {
         // Bins need to be a power of two
-        bins.iter().for_each(|x| assert!(x.is_power_of_two()));
+        n_bins.iter().for_each(|x| assert!(x.is_power_of_two()));
 
-        let num_layers = bins
+        let num_layers = n_bins
             .iter()
             .map(|b| (*b as f64).log2() as u32)
             .max()
@@ -229,13 +237,14 @@ impl Pyramid {
             root,
             layers: Vec::with_capacity(num_layers as usize),
             limits: limits.clone(),
+            n_bins: n_bins.clone(),
         };
         pyr.push_layer(root_layer);
 
         for l in 1..(num_layers + 1) {
             let (bin_pos, ext) = bin_positions(
                 limits.clone(),
-                (0..(bins.len()))
+                (0..(n_bins.len()))
                     .into_iter()
                     .map(|_| (l as f64).exp2() as usize)
                     .collect(),
