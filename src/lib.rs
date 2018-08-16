@@ -18,6 +18,7 @@ mod pyramid;
 
 use layer::Layer;
 use node::Node;
+pub use pyramid::norm;
 pub use pyramid::Pyramid;
 
 type NodeRef = Arc<RwLock<Node>>;

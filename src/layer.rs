@@ -18,6 +18,15 @@ pub struct Layer {
     bins: Vec<usize>,
 }
 
+/// calculate the difference between two layers
+pub fn diff_layer(l1: &Layer, l2: &Layer) -> Vec<f64> {
+    l1.node
+        .iter()
+        .zip(l2.node.iter())
+        .map(|(a, b)| a.read().unwrap().val() - b.read().unwrap().val())
+        .collect()
+}
+
 impl Layer {
     pub fn new(layer: usize, extent: Extent) -> Self {
         Layer {

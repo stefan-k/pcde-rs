@@ -7,8 +7,7 @@
 
 //! Pyramid
 
-// use std::rc::Rc;
-// use std::cell::RefCell;
+use layer::diff_layer;
 use std::f64;
 use std::mem;
 use Extent;
@@ -80,9 +79,24 @@ fn bin_positions(lim: Vec<(f64, f64)>, n_bins: Vec<usize>) -> (Vec<Vec<f64>>, Ex
 #[derive(Debug)]
 pub struct Pyramid {
     root: NodeRef,
-    layers: Vec<Layer>,
+    pub layers: Vec<Layer>,
     limits: Vec<(f64, f64)>,
     n_bins: Vec<usize>,
+}
+
+/// compute the norm of two `Pyramid`s
+pub fn norm(p1: &Pyramid, p2: &Pyramid) -> f64 {
+    assert!(p1 == p2);
+    p1.layers
+        .iter()
+        .zip(p2.layers.iter())
+        .map(|(a, b)| diff_layer(a, b))
+        .collect::<Vec<Vec<f64>>>()
+        .iter()
+        .flat_map(|arr| arr.iter())
+        .map(|x| x.powi(2))
+        .sum::<f64>()
+        .sqrt()
 }
 
 impl PartialEq for Pyramid {
