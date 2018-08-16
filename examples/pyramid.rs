@@ -28,7 +28,7 @@ fn main() {
     for _ in 0..(256 * 256) {
         let x: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
         let y: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
-        pyr.add_val(vec![x, y]);
+        pyr.add_point(vec![x, y]);
     }
     println!("{:#?}", pyr.layer(2).values());
     pyr.layer(7).write_map("bla.bmp");

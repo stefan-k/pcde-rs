@@ -203,7 +203,7 @@ pub struct Pyramid {
 }
 
 impl Pyramid {
-    pub fn new(limits: Vec<(f64, f64)>, bins: Vec<u64>) -> Self {
+    pub fn new(limits: Vec<(f64, f64)>, bins: Vec<usize>) -> Self {
         // Bins need to be a power of two
         bins.iter().for_each(|x| assert!(x.is_power_of_two()));
 
@@ -309,7 +309,7 @@ impl Pyramid {
         vec![step_x, step_y]
     }
 
-    pub fn add_val(&mut self, pos: Vec<f64>) -> &mut Self {
+    pub fn add_point(&mut self, pos: Vec<f64>) -> &mut Self {
         let mut curr_nodes = vec![self.root.clone()];
         let mut next_nodes: Vec<NodeRef> = vec![];
         for lay in 0..self.layers.len() {
