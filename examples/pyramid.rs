@@ -5,10 +5,8 @@
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
 
-extern crate cpuprofiler;
 extern crate pcde;
 extern crate rand;
-use cpuprofiler::PROFILER;
 use pcde::Pyramid;
 use rand::Rng;
 
@@ -27,26 +25,13 @@ fn main() {
     let mut pyr = Pyramid::new(vec![lim_x, lim_y], n_bins);
     println!("Adding values...");
 
-    // PROFILER.lock().unwrap().start("./myprof.profile").unwrap();
     for _ in 0..(256 * 256) {
         let x: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
         let y: f64 = rand::thread_rng().gen_range(-8.0, 8.0);
         pyr.add_val(vec![x, y]);
     }
-    // PROFILER.lock().unwrap().stop().unwrap();
-    //
-    // pyr.add_val(vec![0.0, 0.0]);
-    // pyr.add_val(vec![1.0, 0.5]);
-    // println!("{:#?}", pyr);
-    // println!("{:#?}", pyr.get_layer(0));
-    // println!("{:#?}", pyr.get_layer(1));
-    println!("{:#?}", pyr.get_layer(2));
-    // println!("{:#?}", pyr.get_layer(3));
-    // println!("{:#?}", pyr.get_layer(4));
-    // println!("{:#?}", pyr.get_layer(5));
-    // println!("{:#?}", pyr.get_layer(6));
-    // println!("{:#?}", pyr.get_layer(7));
-    // println!("{:#?}", pyr.get_layer(8));
+    println!("{:#?}", pyr.layer(2).values());
+    pyr.layer(7).write_map("bla.bmp");
     pyr.clear();
-    println!("{:#?}", pyr.get_layer(2));
+    println!("{:#?}", pyr.layer(2).values());
 }

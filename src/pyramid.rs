@@ -7,8 +7,9 @@
 
 //! Pyramid
 
-// use std::cell::RefCell;
 // use std::rc::Rc;
+// use std::cell::RefCell;
+use image;
 use std::f64;
 use std::mem;
 use std::sync::Arc;
@@ -66,7 +67,8 @@ impl Node {
             .zip(extent.iter())
             .map(|((&xn, xk), &l)| (xn >= xk - l) && (xn <= xk + l))
             .filter(|x| !x)
-            .count() == 0
+            .count()
+            == 0
     }
 
     pub fn add(&mut self, pos: Vec<f64>, ext: Extent) -> &mut Self {
@@ -149,10 +151,11 @@ fn bin_positions(lim: Vec<(f64, f64)>, n_bins: Vec<usize>) -> (Vec<Vec<f64>>, Ex
     (out, steps)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Layer {
     node: Vec<NodeRef>,
     extent: Extent,
+    bins: Vec<usize>,
 }
 
 impl Layer {
@@ -160,12 +163,35 @@ impl Layer {
         Layer {
             node: Vec::with_capacity(layer.pow(2) * layer.pow(2)),
             extent,
+            bins: vec![2usize.pow(layer as u32), 2usize.pow(layer as u32)],
         }
     }
 
     pub fn push_node(&mut self, node: &NodeRef) -> &mut Self {
         self.node.push(node.clone());
         self
+    }
+
+    pub fn values(&self) -> Vec<f64> {
+        self.node.iter().map(|x| x.read().unwrap().val()).collect()
+    }
+
+    pub fn write_map(&self, file: &str) {
+        let img: Vec<f64> = self.node.iter().map(|x| x.read().unwrap().val()).collect();
+        // let img_min = img.iter().cloned().fold(0. / 0., f64::min);
+        // let img: Vec<f64> = img.iter().map(|x| x - img_min).collect();
+        let img_max = img.iter().cloned().fold(0. / 0., f64::max);
+        let img: Vec<u8> = img.iter().map(|x| (255.0 * x / img_max) as u8).collect();
+        println!("{:?}", img.len());
+        println!("{:?}", self.bins);
+        println!("{:?}", img);
+        image::save_buffer(
+            file,
+            &img,
+            self.bins[0] as u32,
+            self.bins[1] as u32,
+            image::Gray(8),
+        ).unwrap();
     }
 }
 
@@ -235,12 +261,8 @@ impl Pyramid {
         self
     }
 
-    pub fn get_layer(&self, layer: usize) -> Vec<f64> {
-        self.layers[layer]
-            .node
-            .iter()
-            .map(|x| x.read().unwrap().val())
-            .collect()
+    pub fn layer(&self, layer: usize) -> Layer {
+        self.layers[layer].clone()
     }
 
     pub fn push_node(&mut self, node: &NodeRef, layer: u64) -> &mut Self {
@@ -264,8 +286,7 @@ impl Pyramid {
                         {
                             next_nodes.push(c.clone())
                         }
-                    })
-                    .count();
+                    }).count();
             }
             mem::swap(&mut curr_nodes, &mut next_nodes);
             next_nodes.clear();
@@ -308,16 +329,14 @@ impl Pyramid {
                         {
                             next_nodes.push(c.clone())
                         }
-                    })
-                    .count();
+                    }).count();
             }
             next_nodes
                 .iter()
                 .map(|x| {
                     let mut y = x.write().unwrap();
                     y.add(pos.clone(), ext.clone());
-                })
-                .count();
+                }).count();
             mem::swap(&mut curr_nodes, &mut next_nodes);
             next_nodes.clear();
         }

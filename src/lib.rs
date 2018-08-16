@@ -7,8 +7,9 @@
 
 //! Point Cloud Density Estimation
 
+extern crate image;
+
 mod pyramid;
-// mod tree;
 
 pub use pyramid::Pyramid;
 
