@@ -20,7 +20,8 @@ fn main() {
     // let n_bins = vec![32, 32];
     // let n_bins = vec![64, 64];
     // let n_bins = vec![128, 128];
-    let n_bins = vec![256, 256];
+    // let n_bins = vec![256, 256];
+    let n_bins = vec![512, 512];
     println!("Building pyramid...");
     let mut pyr = Pyramid::new(vec![lim_x, lim_y], n_bins);
     println!("Adding values...");
@@ -31,7 +32,7 @@ fn main() {
         pyr.add_point(vec![x, y]);
     }
     println!("{:#?}", pyr.layer(2).values());
-    pyr.layer(7).write_map("bla.bmp");
+    pyr.layer(9).write_map("bla.bmp");
     pyr.clear();
-    println!("{:#?}", pyr.layer(2).values());
+    println!("{:#?}", pyr.layer(9).values());
 }
