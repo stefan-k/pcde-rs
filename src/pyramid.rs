@@ -9,86 +9,12 @@
 
 // use std::rc::Rc;
 // use std::cell::RefCell;
-use image;
 use std::f64;
 use std::mem;
-use std::sync::Arc;
-use std::sync::RwLock;
-
-// type NodeRef = Arc<RefCell<Node>>;
-type NodeRef = Arc<RwLock<Node>>;
-type Extent = Vec<f64>;
-
-#[derive(Debug)]
-pub struct Node {
-    id: u64,
-    pos: Vec<f64>,
-    val: f64,
-    children: Vec<NodeRef>,
-}
-
-impl PartialEq for Node {
-    fn eq(&self, other: &Node) -> bool {
-        self.id == other.id
-    }
-}
-
-impl Node {
-    pub fn new(pos: Vec<f64>, id: u64) -> Node {
-        Node {
-            id,
-            pos,
-            val: 0.0,
-            children: vec![],
-        }
-    }
-
-    pub fn id(&self) -> u64 {
-        self.id
-    }
-
-    /// *giggles*
-    pub fn push_child(&mut self, node: &NodeRef) -> &mut Self {
-        self.children.push(node.clone());
-        self
-    }
-
-    pub fn val(&self) -> f64 {
-        self.val
-    }
-
-    pub fn as_ref(self) -> NodeRef {
-        Arc::new(RwLock::new(self))
-    }
-
-    pub fn inside(&self, pos: Vec<f64>, extent: Extent) -> bool {
-        pos.iter()
-            .zip(self.pos.iter())
-            .zip(extent.iter())
-            .map(|((&xn, xk), &l)| (xn >= xk - l) && (xn <= xk + l))
-            .filter(|x| !x)
-            .count()
-            == 0
-    }
-
-    pub fn add(&mut self, pos: Vec<f64>, ext: Extent) -> &mut Self {
-        // println!("{:?} x {:?} x {:?}", self.pos, pos, ext);
-        self.val += self
-            .pos
-            .iter()
-            .zip(pos.iter())
-            .map(|(a, b)| (a - b).abs())
-            .zip(ext.iter())
-            .map(|(d, e)| 1.0 - d / e)
-            .fold(f64::INFINITY, |a, b| a.min(b));
-        self
-    }
-
-    pub fn clear(&mut self) -> &mut Self {
-        self.val = 0.0;
-        self
-    }
-}
+use Extent;
+use Layer;
+use Node;
+use NodeRef;
 
 fn bin_positions(lim: Vec<(f64, f64)>, n_bins: Vec<usize>) -> (Vec<Vec<f64>>, Extent) {
     let dims = n_bins.len();
@@ -149,50 +75,6 @@ fn bin_positions(lim: Vec<(f64, f64)>, n_bins: Vec<usize>) -> (Vec<Vec<f64>>, Ex
     }
 
     (out, steps)
-}
-
-#[derive(Debug, Clone)]
-pub struct Layer {
-    node: Vec<NodeRef>,
-    extent: Extent,
-    bins: Vec<usize>,
-}
-
-impl Layer {
-    pub fn new(layer: usize, extent: Extent) -> Self {
-        Layer {
-            node: Vec::with_capacity(layer.pow(2) * layer.pow(2)),
-            extent,
-            bins: vec![2usize.pow(layer as u32), 2usize.pow(layer as u32)],
-        }
-    }
-
-    pub fn push_node(&mut self, node: &NodeRef) -> &mut Self {
-        self.node.push(node.clone());
-        self
-    }
-
-    pub fn values(&self) -> Vec<f64> {
-        self.node.iter().map(|x| x.read().unwrap().val()).collect()
-    }
-
-    pub fn write_map(&self, file: &str) {
-        let img: Vec<f64> = self.node.iter().map(|x| x.read().unwrap().val()).collect();
-        // let img_min = img.iter().cloned().fold(0. / 0., f64::min);
-        // let img: Vec<f64> = img.iter().map(|x| x - img_min).collect();
-        let img_max = img.iter().cloned().fold(0. / 0., f64::max);
-        let img: Vec<u8> = img.iter().map(|x| (255.0 * x / img_max) as u8).collect();
-        println!("{:?}", img.len());
-        println!("{:?}", self.bins);
-        println!("{:?}", img);
-        image::save_buffer(
-            file,
-            &img,
-            self.bins[0] as u32,
-            self.bins[1] as u32,
-            image::Gray(8),
-        ).unwrap();
-    }
 }
 
 #[derive(Debug)]

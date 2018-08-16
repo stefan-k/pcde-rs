@@ -9,9 +9,19 @@
 
 extern crate image;
 
+use std::sync::Arc;
+use std::sync::RwLock;
+
+mod layer;
+mod node;
 mod pyramid;
 
+use layer::Layer;
+use node::Node;
 pub use pyramid::Pyramid;
+
+type NodeRef = Arc<RwLock<Node>>;
+type Extent = Vec<f64>;
 
 // #[cfg(test)]
 // mod tests {
