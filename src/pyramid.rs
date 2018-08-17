@@ -89,8 +89,8 @@ pub fn norm(p1: &Pyramid, p2: &Pyramid) -> f64 {
     assert!(p1 == p2);
     p1.layers
         .iter()
-        .skip(5)
-        .zip(p2.layers.iter().skip(5))
+        .skip(1)
+        .zip(p2.layers.iter().skip(1))
         .map(|(a, b)| diff_layer(a, b))
         .collect::<Vec<Vec<f64>>>()
         .iter()
