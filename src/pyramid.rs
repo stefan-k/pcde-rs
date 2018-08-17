@@ -89,7 +89,8 @@ pub fn norm(p1: &Pyramid, p2: &Pyramid) -> f64 {
     assert!(p1 == p2);
     p1.layers
         .iter()
-        .zip(p2.layers.iter())
+        .skip(5)
+        .zip(p2.layers.iter().skip(5))
         .map(|(a, b)| diff_layer(a, b))
         .collect::<Vec<Vec<f64>>>()
         .iter()
@@ -168,6 +169,10 @@ impl Pyramid {
 
     pub fn layer(&self, layer: usize) -> Layer {
         self.layers[layer].clone()
+    }
+
+    pub fn num_layers(&self) -> usize {
+        self.layers.len()
     }
 
     pub fn push_node(&mut self, node: &NodeRef, layer: u64) -> &mut Self {
