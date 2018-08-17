@@ -51,9 +51,9 @@ impl Layer {
         // let img: Vec<f64> = img.iter().map(|x| x - img_min).collect();
         let img_max = img.iter().cloned().fold(0. / 0., f64::max);
         let img: Vec<u8> = img.iter().map(|x| (255.0 * x / img_max) as u8).collect();
-        println!("{:?}", img.len());
-        println!("{:?}", self.bins);
-        println!("{:?}", img);
+        // println!("{:?}", img.len());
+        // println!("{:?}", self.bins);
+        // println!("{:?}", img);
         image::save_buffer(
             file,
             &img,
