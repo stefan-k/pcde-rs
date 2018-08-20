@@ -108,7 +108,7 @@ impl PartialEq for Pyramid {
 }
 
 impl Pyramid {
-    pub fn new(limits: Vec<(f64, f64)>, n_bins: Vec<usize>) -> Self {
+    pub fn new(limits: &Vec<(f64, f64)>, n_bins: &Vec<usize>) -> Self {
         // Bins need to be a power of two
         n_bins.iter().for_each(|x| assert!(x.is_power_of_two()));
 
