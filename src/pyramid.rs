@@ -76,7 +76,7 @@ fn bin_positions(lim: Vec<(f64, f64)>, n_bins: Vec<usize>) -> (Vec<Vec<f64>>, Ex
     (out, steps)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Pyramid {
     root: NodeRef,
     pub layers: Vec<Layer>,
