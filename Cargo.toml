@@ -20,7 +20,7 @@ exclude = [
 image = "0.19.0"
 
 [dev-dependencies]
-rand = "0.4.2"
+rand = "0.7.2"
 
 [features]
 default = []
