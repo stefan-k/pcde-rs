@@ -17,7 +17,7 @@ exclude = [
 ]
 
 [dependencies]
-image = "0.22.3"
+image = "0.23.13"
 
 [dev-dependencies]
 rand = "0.8.0"
